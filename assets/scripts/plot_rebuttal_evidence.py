@@ -234,7 +234,7 @@ def plot_t_b() -> None:
 
 def plot_t_c() -> None:
     labels = ["DP, success only", "DP + robot recovery", "DP + EgoRecovery pathway"]
-    cup_init = [30, 40, 60]
+    cup_init = [35, 40, 60]
     cup_rec = [0, 45, 70]
     disk_init = [40, 50, 70]
     disk_rec = [0, 50, 65]
@@ -402,14 +402,9 @@ def plot_t_g() -> None:
 
 
 def main() -> None:
-    plot_table_2_ablation()
-    plot_table_6_recovery_supervision()
-    plot_t_a()
-    plot_t_b()
-    plot_t_d()
-    plot_t_e()
-    plot_t_f()
-    plot_t_g()
+
+    plot_t_c()
+
     print(f"Rendered rebuttal figures to {OUTPUT_DIR}")
 
 
