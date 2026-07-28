@@ -1,0 +1,32 @@
+# # path to root directory
+# # this requires PROJECT_ROOT environment variable to exist
+# # you can replace it with "." if you want the root to be the current working directory
+# root_dir: ${oc.env:PROJECT_ROOT}
+
+# # path to data directory
+# data_dir: ${paths.root_dir}/data/
+
+# path to logging directory
+log_dir: ${paths.root_dir}/logs/
+
+# Final NAS destination for this run (what users cd into afterwards).
+nas_output_dir: ${hydra:runtime.output_dir}
+
+# What every callback writes to (`${paths.output_dir}/checkpoints`,
+# `${paths.output_dir}/vis_intent`, wandb `save_dir`, csv `save_dir`, etc.).
+# Default equals nas_output_dir to preserve legacy behavior; trainHydra.py
+# reroutes it to `/dev/shm/run_staging/<hash>` when staging_enabled=true and
+# starts a background rsync back to nas_output_dir. See
+# egomimic/utils/local_staging.py.
+output_dir: ${paths.nas_output_dir}
+
+# Stage rank-0 writes on tmpfs + async-mirror to NAS. Disable for eval or
+# debugging where artefacts should land on NAS immediately.
+staging_enabled: true
+
+# Background rsync cadence. Checkpoints have their own async mirror
+# (AsyncCopyModelCheckpoint) independent of this interval.
+staging_mirror_interval_s: 30
+
+# path to working directory
+work_dir: ${hydra:runtime.cwd}

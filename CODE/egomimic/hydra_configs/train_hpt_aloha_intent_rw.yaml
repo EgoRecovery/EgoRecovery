@@ -1,0 +1,88 @@
+# Top-level config for Recovery-Window-Conditioned Intent + SR Head training
+# (docs/intent_head_cotrain.md, Mode 2-RW+SR variant).
+#
+# Three composable swap-ins relative to train_hpt_aloha_intent.yaml:
+#   - data=cotrain_aloha_hand_intent_rw
+#       → reads recovery_intent_valid + sr_label from zarr
+#       → defaults to merged_robot (33 success + 15 recovery, masks baked in)
+#         and human_247_check (clean recovery, masks baked in).
+#   - data_schematic=aloha_hand_intent_rw
+#       → registers the two new metadata keys.
+#   - model=hpt_cotrain_aloha_hand_intent_rw
+#       → intent_dim=4, lambda_intent=0.05, sr_head + lambda_sr=0.05,
+#         lambda_null=0.01.
+#
+# Prerequisites (run once per dataset, in order):
+#
+#   # robot side: merge success + recovery, write masks, then 4D L-only gt_intent
+#   python scripts/data_analysis/merge_recovery_success_zarr.py \
+#       --success_dir <robot_success_33> --recovery_dir <robot_recovery_15>
+#   python egomimic/scripts/precompute_gt_intent.py \
+#       --zarr_dir <merged_robot> --arms L --overwrite
+#   python scripts/data_analysis/mask_success_gt_intent.py --zarr_dir <merged_robot>
+#
+#   # human side: rebuild from labels, write masks, 4D L-only gt_intent
+#   python scripts/data_analysis/rebuild_recovery_zarr.py --src_dir <human_500>
+#   python scripts/data_analysis/apply_recovery_labels.py --zarr_dir <human_247_check>
+#   python egomimic/scripts/precompute_gt_intent.py \
+#       --zarr_dir <human_247_check> --arms L --overwrite
+#
+# Backward compat: nothing in this config touches the legacy non-RW path. To
+# run the original Mode 2 training, keep using train_hpt_aloha_intent.yaml.
+
+defaults:
+  - model: hpt_cotrain_aloha_hand_intent_rw
+  - paths: default
+  - trainer: ddp
+  - debug: null
+  - logger: wandb
+  - data: cotrain_aloha_hand_intent_rw
+  - callbacks: checkpoints_intent
+  - data_schematic: aloha_hand_intent_rw
+  - override hydra/launcher: submitit
+  - _self_
+
+name: hpt_aloha_intent_rw
+description: default
+ckpt_path: null
+mode: train
+
+# Optional overrides — leave unset to use the data config's defaults.
+# Set these when running an ablation on a different dataset pair.
+aloha_data_path: null
+hand_data_path: null
+
+data:
+  train_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${oc.select:aloha_data_path,/path/to/dataset/t1_zarr_insertion_new_33_recovery_15_mask_lerobot_before_left_release_25fps_28D}
+    hand_bimanual:
+      resolver:
+        folder_path: ${oc.select:hand_data_path,/path/to/dataset/t1_zarr_human_hand_insertion_recovery_247_cut_5s_25fps_check}
+  valid_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${oc.select:aloha_data_path,/path/to/dataset/t1_zarr_insertion_new_33_recovery_15_mask_lerobot_before_left_release_25fps_28D}
+    hand_bimanual:
+      resolver:
+        folder_path: ${oc.select:hand_data_path,/path/to/dataset/t1_zarr_human_hand_insertion_recovery_247_cut_5s_25fps_check}
+
+hydra:
+  run:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+
+launch_params:
+  gpus_per_node: 8
+  nodes: 1
+
+seed: 42
+
+norm_stats:
+  sample_frac: 1.0
+  num_workers: 4
+  save_cache_dir: ${hydra:runtime.output_dir}
+  precomputed_norm_path: null
+reject_outliers: false

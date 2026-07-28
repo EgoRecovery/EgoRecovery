@@ -1,0 +1,37 @@
+# Model config for Recovery-Window-Conditioned Intent + S/R head
+# (docs/intent_head_cotrain.md, Mode 2-RW+SR variant).
+#
+# Differences vs hpt_cotrain_aloha_hand_intent.yaml (parent):
+#   - intent_head.intent_dim: 8 → 4   (4D L-only, single-arm grip-pose tasks)
+#   - lambda_intent: 0.1 → 0.05       (KS_R = 0.208 is tighter than the original
+#                                       8D 0.26; mid-yellow band — start safe)
+#   - new sr_head: SRHead module      (BCE binary classifier for nominal vs recovery)
+#   - new lambda_sr: 0.05             (matched to lambda_intent)
+#   - new lambda_null: 0.01           (small null regularizer per doc §I.1)
+#
+# No gating yet (doc §D Mode 2-RW+SR+Gate is reserved for a later ablation).
+# Pair with:
+#   data=cotrain_aloha_hand_intent_rw
+#   data_schematic=aloha_hand_intent_rw
+
+defaults:
+  - hpt_cotrain_aloha_hand_intent
+  - _self_
+
+robomimic_model:
+  intent_head:
+    # Override intent_dim to 4 (L-only, matches the 4D gt_intent_raw written
+    # by precompute_gt_intent.py --arms L). The action heads keep
+    # latent_token_len=65 from the parent.
+    intent_dim: 4
+
+  # SR head shares the IntentPool output (z_intent_in, B,256) with IntentHead
+  # — see docs/intent_head_cotrain.md §D for the rationale.
+  sr_head:
+    _target_: egomimic.models.hpt_intent.SRHead
+    latent_dim: 256
+    hidden_dim: 64
+
+  lambda_intent: 0.05
+  lambda_sr: 0.05
+  lambda_null: 0.01

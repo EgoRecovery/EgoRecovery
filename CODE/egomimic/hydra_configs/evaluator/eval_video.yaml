@@ -1,0 +1,6 @@
+_target_: egomimic.eval.eval_video.EvalVideo
+# Cap the number of validation batches whose visualization frames are buffered
+# and written to disk. Metric computation still runs on the full val set.
+# Keep small (4) to bound rank-0 h264 encode time; raise if you need denser
+# qualitative coverage and have vetted the NAS/disk throughput.
+viz_max_batches: 4

@@ -1,0 +1,40 @@
+# Model config for Intent-Head Co-Train (docs/intent_head_cotrain.md).
+# Differences vs hpt_cotrain_aloha_hand.yaml (baseline):
+#   - latent_token_len: 64 → 65   (memory gains one intent_token)
+#   - intent_pool / intent_head / lambda_intent registered
+#
+# Pair with:
+#   data=cotrain_aloha_hand_intent
+#   data_schematic=aloha_hand_intent
+
+defaults:
+  - hpt_cotrain_aloha_hand
+  - _self_
+
+robomimic_model:
+  head_specs:
+    # Action heads read 65 memory tokens: 64 trunk action tokens + 1 intent_token
+    # appended by HPTModel.apply_intent.
+    aloha_bimanual:
+      latent_token_len: 65
+    hand_bimanual:
+      latent_token_len: 65
+
+  # Intent-Head Co-Train. Set both to null and lambda_intent: 0 to run the
+  # Mode 1 ablation (no L_intent) while keeping the 65-token memory.
+  intent_pool:
+    _target_: egomimic.models.hpt_intent.IntentPool
+    latent_dim: 256
+    num_heads: 8
+  intent_head:
+    _target_: egomimic.models.hpt_intent.IntentHead
+    latent_dim: 256
+    hidden_dim: 64
+    # intent_dim must match the dimension produced by precompute_gt_intent.py:
+    #   --arms LR (default, bimanual)        → intent_dim: 8
+    #   --arms L  or --arms R (single-arm)   → intent_dim: 4
+    # Mismatch is caught at first forward step with a clear ValueError
+    # (HPTModel._compute_intent_loss). Each zarr records its setting in
+    # z.attrs['gt_intent_arms'] / z.attrs['gt_intent_dim'].
+    intent_dim: 8
+  lambda_intent: 0.1

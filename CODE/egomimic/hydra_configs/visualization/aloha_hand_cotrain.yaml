@@ -1,0 +1,13 @@
+aloha_bimanual:
+  _target_: egomimic.rldb.embodiment.aloha.Aloha.viz_gt_preds
+  _partial_: true
+  image_key: front_img_1
+  action_key: actions_joints
+  mode: traj_joints
+  extrinsics_key: ariaJul29
+hand_bimanual:
+  _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.viz_gt_preds
+  _partial_: true
+  image_key: front_img_1
+  action_key: actions_ee
+  mode: traj

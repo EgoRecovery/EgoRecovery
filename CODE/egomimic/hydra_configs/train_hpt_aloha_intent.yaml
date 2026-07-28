@@ -1,0 +1,68 @@
+# Top-level config for Intent-Head Co-Train (docs/intent_head_cotrain.md).
+#
+# Difference vs train_hpt_aloha.yaml: switches three composable configs to their
+# ``_intent`` variants that:
+#   - load gt_intent / gt_intent_valid from zarr (data.cotrain_aloha_hand_intent)
+#   - register them as batch keys with proper key_type (data_schematic.aloha_hand_intent)
+#   - wire IntentPool / IntentHead and set latent_token_len=65 (model.hpt_cotrain_aloha_hand_intent)
+#
+# Prerequisite: both aloha and hand datasets must have been preprocessed via
+#   python egomimic/scripts/precompute_gt_intent.py --zarr_dir <path>
+# which writes gt_intent_raw and gt_intent_valid into each episode zarr.
+
+defaults:
+  - model: hpt_cotrain_aloha_hand_intent
+  - visualization: aloha_hand_cotrain
+  - paths: default
+  - trainer: ddp
+  - debug: null
+  - logger: wandb
+  - data: cotrain_aloha_hand_intent
+  - callbacks: checkpoints_intent
+  - data_schematic: aloha_hand_intent
+  - evaluator: eval_video
+  - override hydra/launcher: submitit
+  - _self_
+
+name: hpt_aloha_intent
+description: default
+ckpt_path: null
+mode: train
+
+aloha_data_path: null
+hand_data_path: null
+
+data:
+  train_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${aloha_data_path}
+    hand_bimanual:
+      resolver:
+        folder_path: ${hand_data_path}
+  valid_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${aloha_data_path}
+    hand_bimanual:
+      resolver:
+        folder_path: ${hand_data_path}
+
+hydra:
+  run:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+
+launch_params:
+  gpus_per_node: 8
+  nodes: 1
+
+seed: 42
+
+norm_stats:
+  sample_frac: 1.0
+  num_workers: 4
+  save_cache_dir: ${hydra:runtime.output_dir}
+  precomputed_norm_path: null
+reject_outliers: false

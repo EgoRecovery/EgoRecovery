@@ -1,0 +1,13 @@
+defaults:
+  - ddp
+
+strategy: ddp_find_unused_parameters_true
+limit_train_batches: 2
+limit_val_batches: 3
+# Debug runs stay on epoch semantics — override step-based defaults inherited from ddp.yaml.
+max_steps: -1
+val_check_interval: 1.0
+check_val_every_n_epoch: 2
+profiler: simple
+max_epochs: 4
+min_epochs: 4

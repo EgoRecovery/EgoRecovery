@@ -1,0 +1,15 @@
+defaults:
+  - defaults
+  - _self_
+
+# Legacy epoch-based checkpointing. Pair with trainer=ddp_epoch.
+model_checkpoint:
+  _target_: egomimic.utils.async_checkpoint.AsyncCopyModelCheckpoint
+  # See checkpoints.yaml for why this uses nas_output_dir not output_dir.
+  dirpath: ${paths.nas_output_dir}/checkpoints
+  local_stage_dir: /dev/shm/ckpt_stage
+  filename: "epoch_{epoch}"
+  save_last: true
+  save_top_k: -1
+  every_n_train_steps: null
+  every_n_epochs: 100

@@ -1,0 +1,112 @@
+# Variant of cotrain_aloha_hand.yaml that exposes Intent-Head Co-Train targets
+# (gt_intent / gt_intent_valid) in the batch.
+#
+# Prerequisite: every episode zarr under the dataset paths must have been
+# preprocessed by ``egomimic/scripts/precompute_gt_intent.py`` (writes
+# ``gt_intent_raw`` and ``gt_intent_valid`` arrays in-place). Without this, the
+# dataloader will fail at runtime when it tries to read those keys.
+#
+# Pair with:
+#   model=hpt_cotrain_aloha_hand_intent
+#   data_schematic=aloha_hand_intent
+# or use train_hpt_aloha_intent.yaml as the entry point.
+
+_target_: egomimic.pl_utils.pl_data_utils.MultiDataModuleWrapper
+train_datasets:
+  aloha_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_aloha_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_keymap
+        keymap_mode: joint
+        include_intent_targets: true
+      transform_list:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_transform_list
+        mode: joint
+        include_intent_targets: true
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: train
+    valid_ratio: 0.1
+  hand_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_hand_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_keymap
+        keymap_mode: ee
+        include_intent_targets: true
+      transform_list:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_transform_list
+        mode: ee
+        include_intent_targets: true
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: train
+    valid_ratio: 0.1
+
+valid_datasets:
+  aloha_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_aloha_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_keymap
+        keymap_mode: joint
+        include_intent_targets: true
+      transform_list:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_transform_list
+        mode: joint
+        include_intent_targets: true
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: valid
+    valid_ratio: 0.1
+  hand_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_hand_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_keymap
+        keymap_mode: ee
+        include_intent_targets: true
+      transform_list:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_transform_list
+        mode: ee
+        include_intent_targets: true
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: valid
+    valid_ratio: 0.1
+
+train_dataloader_params:
+  aloha_bimanual:
+    batch_size: 64
+    num_workers: 4
+    persistent_workers: true
+    pin_memory: true
+    prefetch_factor: 2
+  hand_bimanual:
+    batch_size: 64
+    num_workers: 4
+    persistent_workers: true
+    pin_memory: true
+    prefetch_factor: 2
+valid_dataloader_params:
+  aloha_bimanual:
+    batch_size: 64
+    num_workers: 2
+    persistent_workers: true
+  hand_bimanual:
+    batch_size: 64
+    num_workers: 2
+    persistent_workers: true

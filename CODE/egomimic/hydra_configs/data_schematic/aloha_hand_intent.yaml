@@ -1,0 +1,59 @@
+# data_schematic variant for Intent-Head Co-Train (docs/intent_head_cotrain.md).
+# Differs from aloha_hand.yaml by adding two keys per embodiment:
+#   - gt_intent       (intent_keys, zscore-normalized per embodiment)
+#   - gt_intent_valid (metadata_keys, not normalized; bool mask)
+# These must be present in the zarr episodes (precomputed offline).
+
+_target_: egomimic.rldb.zarr.utils.DataSchematic
+norm_mode: quantile
+schematic_dict:
+  aloha_bimanual:
+    front_img_1:
+      key_type: camera_keys
+      zarr_key: observations.images.front_img_1
+    left_wrist_img:
+      key_type: camera_keys
+      zarr_key: observations.images.left_wrist_img
+    right_wrist_img:
+      key_type: camera_keys
+      zarr_key: observations.images.right_wrist_img
+    joint_positions:
+      key_type: proprio_keys
+      zarr_key: observations.state.joint_positions
+    actions_joints:
+      key_type: action_keys
+      zarr_key: actions_joints
+    gt_intent:
+      key_type: intent_keys
+      zarr_key: gt_intent
+    gt_intent_valid:
+      key_type: metadata_keys
+      zarr_key: gt_intent_valid
+    embodiment:
+      key_type: metadata_keys
+      zarr_key: metadata.embodiment
+  hand_bimanual:
+    front_img_1:
+      key_type: camera_keys
+      zarr_key: observations.images.front_img_1
+    left_wrist_img:
+      key_type: camera_keys
+      zarr_key: observations.images.left_wrist_img
+    right_wrist_img:
+      key_type: camera_keys
+      zarr_key: observations.images.right_wrist_img
+    ee_pose:
+      key_type: proprio_keys
+      zarr_key: observations.state.ee_pose
+    actions_ee:
+      key_type: action_keys
+      zarr_key: actions_ee
+    gt_intent:
+      key_type: intent_keys
+      zarr_key: gt_intent
+    gt_intent_valid:
+      key_type: metadata_keys
+      zarr_key: gt_intent_valid
+    embodiment:
+      key_type: metadata_keys
+      zarr_key: metadata.embodiment

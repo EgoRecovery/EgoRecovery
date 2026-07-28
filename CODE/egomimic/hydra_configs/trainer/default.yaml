@@ -1,0 +1,23 @@
+_target_: lightning.pytorch.trainer.Trainer
+
+default_root_dir: ${paths.output_dir}
+
+max_epochs: 2000
+min_epochs: 1
+# Primary training budget when using the step-based config group (ddp / ddp_pi).
+# Set to -1 to fall back to epoch-only semantics (see trainer/ddp_epoch.yaml).
+max_steps: 100000
+
+accelerator: cpu
+devices: 1
+
+# mixed precision for extra speed-up
+precision: bf16
+limit_train_batches: 1.0
+limit_val_batches: 1.0
+# perform a validation loop every N training epochs
+check_val_every_n_epoch: 200
+
+# set True to to ensure deterministic results
+# makes training slower but gives more reproducibility than just setting seeds
+deterministic: False

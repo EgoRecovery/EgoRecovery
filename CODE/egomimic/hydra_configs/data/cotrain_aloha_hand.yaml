@@ -1,0 +1,91 @@
+_target_: egomimic.pl_utils.pl_data_utils.MultiDataModuleWrapper
+train_datasets:
+  aloha_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_aloha_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_keymap
+        keymap_mode: joint
+      transform_list:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_transform_list
+        mode: joint
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: train
+    valid_ratio: 0.1
+  hand_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_hand_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_keymap
+        keymap_mode: ee
+      transform_list:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_transform_list
+        mode: ee
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: train
+    valid_ratio: 0.1
+
+valid_datasets:
+  aloha_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_aloha_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_keymap
+        keymap_mode: joint
+      transform_list:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_transform_list
+        mode: joint
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: valid
+    valid_ratio: 0.1
+  hand_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_hand_insertion_240
+      key_map:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_keymap
+        keymap_mode: ee
+      transform_list:
+        _target_: egomimic.rldb.embodiment.hand_insertion.HandInsertion.get_transform_list
+        mode: ee
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: valid
+    valid_ratio: 0.1
+
+train_dataloader_params:
+  aloha_bimanual:
+    batch_size: 64
+    num_workers: 4
+    persistent_workers: true
+    pin_memory: true
+    prefetch_factor: 2
+  hand_bimanual:
+    batch_size: 64
+    num_workers: 4
+    persistent_workers: true
+    pin_memory: true
+    prefetch_factor: 2
+valid_dataloader_params:
+  aloha_bimanual:
+    batch_size: 64
+    num_workers: 2
+    persistent_workers: true
+  hand_bimanual:
+    batch_size: 64
+    num_workers: 2
+    persistent_workers: true

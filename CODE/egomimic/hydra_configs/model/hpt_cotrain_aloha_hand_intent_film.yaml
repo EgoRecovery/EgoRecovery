@@ -1,0 +1,45 @@
+# Model config for FiLM-gated intent path (docs/intent_head_cotrain_new.md §2).
+#
+# Differences vs hpt_cotrain_aloha_hand_intent_rw.yaml (parent, Mode 2 RW):
+#   - latent_token_len: 65 → 64        (no intent_token concat in memory;
+#                                       intent injected via FiLM at action head)
+#   - intent_head.produce_token: false (skips up_project; saves params and
+#                                       avoids DDP unused-param warnings)
+#   - new intent_film: IntentFiLM      (β_min=0.1 soft baseline,
+#                                       small-init scale=0.01)
+#
+# Loss weights are inherited unchanged: λ_intent=0.05, λ_sr=0.05, λ_null=0.01.
+#
+# The FiLM gate uses σ(sr_logit).detach() — SR head not back-propagated through
+# BC pathway, only through L_SR.
+#
+# Pair with:
+#   data=cotrain_aloha_hand_intent_rw          (reused; FiLM uses same RW data)
+#   data_schematic=aloha_hand_intent_rw        (reused)
+
+defaults:
+  - hpt_cotrain_aloha_hand_intent_rw
+  - _self_
+
+robomimic_model:
+  head_specs:
+    # No intent_token in memory under FiLM, so memory width is back to 64.
+    aloha_bimanual:
+      latent_token_len: 64
+    hand_bimanual:
+      latent_token_len: 64
+
+  intent_head:
+    # FiLM injects intent via γ/β linears, so IntentHead.up_project is dead
+    # weight and would trigger DDP "unused parameter" warnings if allocated.
+    produce_token: false
+
+  intent_film:
+    _target_: egomimic.models.hpt_intent.IntentFiLM
+    intent_dim: 4
+    latent_dim: 256
+    beta_min: 0.1       # soft baseline so recovery signal is not lost when
+                         # SR head is uncertain at deployment (KS_R partial
+                         # overlap → p_rec OOD risk; see docs §R3)
+    init_scale: 0.01    # γ/β small-init; pure zero-init can leave FiLM
+                         # stuck at identity if BC works without intent

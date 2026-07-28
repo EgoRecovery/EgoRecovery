@@ -1,0 +1,43 @@
+_target_: egomimic.pl_utils.pl_data_utils.MultiDataModuleWrapper
+train_datasets:
+  aloha_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: /path/to/dataset/zarr_aloha_insertion
+      key_map:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_keymap
+        keymap_mode: joint
+      transform_list:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_transform_list
+        mode: joint
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: train
+
+valid_datasets:
+  aloha_bimanual:
+    _target_: egomimic.rldb.zarr.zarr_dataset_multi.MultiDataset._from_resolver
+    resolver:
+      _target_: egomimic.rldb.zarr.zarr_dataset_multi.LocalEpisodeResolver
+      folder_path: ${data.train_datasets.aloha_bimanual.resolver.folder_path}
+      key_map:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_keymap
+        keymap_mode: joint
+      transform_list:
+        _target_: egomimic.rldb.embodiment.aloha.Aloha.get_transform_list
+        mode: joint
+    filters:
+      _target_: egomimic.rldb.filters.DatasetFilter
+      filter_lambdas: []
+    mode: valid
+
+train_dataloader_params:
+  aloha_bimanual:
+    batch_size: 32
+    num_workers: 8
+valid_dataloader_params:
+  aloha_bimanual:
+    batch_size: 32
+    num_workers: 8

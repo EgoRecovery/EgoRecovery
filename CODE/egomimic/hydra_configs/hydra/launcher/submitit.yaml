@@ -1,0 +1,18 @@
+defaults:
+  - submitit_slurm
+
+_target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+
+# Slurm configuration
+name: ${hydra.job.name}                             # Default job name
+partition: null                                     # Set to your Slurm partition, e.g. "gpu"
+account: null                                       # Set to your Slurm account if required
+cpus_per_task: 12                                   # Number of CPUs per task
+nodes: ${launch_params.nodes}                       # Number of nodes
+tasks_per_node: ${launch_params.gpus_per_node}      # Use variable for tasks per node
+gres: "gpu:${eval:'${launch_params.gpus_per_node} * ${launch_params.nodes}'}" # GPU count
+qos: null                                           # Set if your cluster requires a QoS
+timeout_min: 2880                                   # Timeout in minutes (48 hours)
+exclude: null                                       # Optional nodes to exclude
+additional_parameters:
+  requeue: true

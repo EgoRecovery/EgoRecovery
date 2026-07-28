@@ -1,0 +1,10 @@
+defaults:
+  - ddp
+  - _self_
+
+# Legacy epoch-based training: disables the step-based budget/validation inherited
+# from ddp.yaml so trainer.max_epochs / check_val_every_n_epoch drive the schedule.
+# Pair with callbacks=checkpoints_epoch to also save checkpoints per epoch.
+max_steps: -1
+val_check_interval: 1.0
+check_val_every_n_epoch: 200

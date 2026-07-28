@@ -1,0 +1,14 @@
+defaults:
+  - default
+
+strategy: ddp_find_unused_parameters_true
+
+accelerator: gpu
+devices: ${eval:'${launch_params.gpus_per_node} * ${launch_params.nodes}'}
+num_nodes: ${launch_params.nodes}
+sync_batchnorm: True
+# Step-based validation cadence. To use epoch-based validation, switch to
+# trainer=ddp_epoch (which sets val_check_interval=1.0 and uses check_val_every_n_epoch).
+val_check_interval: 10000
+check_val_every_n_epoch: null
+num_sanity_val_steps: 0

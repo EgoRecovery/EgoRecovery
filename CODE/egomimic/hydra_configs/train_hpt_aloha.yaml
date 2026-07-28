@@ -1,0 +1,56 @@
+defaults:
+  - model: hpt_cotrain_aloha_hand
+  - visualization: aloha_hand_cotrain
+  - paths: default
+  - trainer: ddp
+  - debug: null
+  - logger: wandb
+  - data: cotrain_aloha_hand
+  - callbacks: checkpoints
+  - data_schematic: aloha_hand
+  - evaluator: eval_video
+  - override hydra/launcher: submitit
+  - _self_
+
+name: hpt_aloha
+description: default
+ckpt_path: null
+mode: train
+
+aloha_data_path: null
+hand_data_path: null
+
+data:
+  train_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${aloha_data_path}
+    hand_bimanual:
+      resolver:
+        folder_path: ${hand_data_path}
+  valid_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${aloha_data_path}
+    hand_bimanual:
+      resolver:
+        folder_path: ${hand_data_path}
+
+hydra:
+  run:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+
+launch_params:
+  gpus_per_node: 8
+  nodes: 1
+
+seed: 42
+
+norm_stats:
+  sample_frac: 1.0
+  num_workers: 4
+  save_cache_dir: ${hydra:runtime.output_dir}
+  precomputed_norm_path: null
+reject_outliers: false

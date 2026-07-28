@@ -1,0 +1,71 @@
+# Top-level config for FiLM-gated intent training
+# (docs/intent_head_cotrain_new.md, main method).
+#
+# Single swap-in relative to train_hpt_aloha_intent_rw.yaml:
+#   - model=hpt_cotrain_aloha_hand_intent_film
+#       → latent_token_len: 64, intent_head.produce_token: false,
+#         intent_film: IntentFiLM(β_min=0.1, init_scale=0.01)
+# Data and data_schematic are unchanged (FiLM uses the same RW labels +
+# precomputed gt_intent as Mode 2).
+#
+# Prerequisites: identical to train_hpt_aloha_intent_rw.yaml — see that file
+# or scripts/data_analysis/RECOVERY_LABELING.md for the data pipeline recipe.
+#
+# Backward compat: nothing in this config touches the legacy non-FiLM paths.
+# To run the Mode 2 token-concat ablation (A1) keep using train_hpt_aloha_intent_rw.yaml.
+
+defaults:
+  - model: hpt_cotrain_aloha_hand_intent_film
+  - paths: default
+  - trainer: ddp
+  - debug: null
+  - logger: wandb
+  - data: cotrain_aloha_hand_intent_rw
+  - callbacks: checkpoints_intent
+  - data_schematic: aloha_hand_intent_rw
+  - override hydra/launcher: submitit
+  - _self_
+
+name: hpt_aloha_intent_film
+description: default
+ckpt_path: null
+mode: train
+
+# Optional overrides — leave unset to use the data config's defaults.
+aloha_data_path: null
+hand_data_path: null
+
+data:
+  train_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${oc.select:aloha_data_path,/path/to/dataset/t1_zarr_insertion_new_33_recovery_15_mask_lerobot_before_left_release_25fps_28D}
+    hand_bimanual:
+      resolver:
+        folder_path: ${oc.select:hand_data_path,/path/to/dataset/t1_zarr_human_hand_insertion_recovery_247_cut_5s_25fps_check}
+  valid_datasets:
+    aloha_bimanual:
+      resolver:
+        folder_path: ${oc.select:aloha_data_path,/path/to/dataset/t1_zarr_insertion_new_33_recovery_15_mask_lerobot_before_left_release_25fps_28D}
+    hand_bimanual:
+      resolver:
+        folder_path: ${oc.select:hand_data_path,/path/to/dataset/t1_zarr_human_hand_insertion_recovery_247_cut_5s_25fps_check}
+
+hydra:
+  run:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: ./logs/${name}/${description}_${now:%Y-%m-%d_%H-%M-%S}
+
+launch_params:
+  gpus_per_node: 8
+  nodes: 1
+
+seed: 42
+
+norm_stats:
+  sample_frac: 1.0
+  num_workers: 4
+  save_cache_dir: ${hydra:runtime.output_dir}
+  precomputed_norm_path: null
+reject_outliers: false
